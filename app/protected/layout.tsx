@@ -1,10 +1,11 @@
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { hasEnvVars } from "@/lib/utils";
-import Link from "next/link";
-import { Suspense } from "react";
+import { DeployButton } from '@/components/deploy-button';
+import { EnvVarWarning } from '@/components/env-var-warning';
+import { AuthButton } from '@/components/auth-button';
+import { ThemeSwitcher } from '@/components/theme-switcher';
+import { hasEnvVars } from '@/lib/utils';
+import Link from 'next/link';
+import { Suspense } from 'react';
+import { Pill } from 'lucide-react';
 
 export default function ProtectedLayout({
   children,
@@ -12,42 +13,43 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
-              </div>
+    <main className='min-h-screen flex flex-col items-center'>
+      <div className='w-full flex flex-col gap-6 sm:gap-8 md:gap-10 items-center'>
+        <nav className='w-full flex justify-center border-b border-b-foreground/10 h-14 sm:h-16'>
+          <div className='w-full max-w-5xl flex justify-between items-center p-2 sm:p-3 px-3 sm:px-4 md:px-5 text-xs sm:text-sm'>
+            <div className='flex gap-2 sm:gap-3 md:gap-5 items-center font-semibold min-w-0'>
+              <Link
+                href={'/protected'}
+                className='flex items-center gap-2 sm:gap-3'
+              >
+                <div className='flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-primary/10'>
+                  <Pill className='w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-primary' />
+                </div>
+                <span className='text-primary font-bold text-base sm:text-lg md:text-xl'>
+                  FarmacoHub
+                </span>
+              </Link>
             </div>
-            {!hasEnvVars ? (
-              <EnvVarWarning />
-            ) : (
-              <Suspense>
-                <AuthButton />
-              </Suspense>
-            )}
+            <div className='flex items-center gap-2 sm:gap-3 shrink-0'>
+              <ThemeSwitcher />
+              {!hasEnvVars ? (
+                <EnvVarWarning />
+              ) : (
+                <Suspense>
+                  <AuthButton />
+                </Suspense>
+              )}
+            </div>
           </div>
         </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
+        <div className='flex-1 min-h-[calc(100vh-3.5rem-1.5rem)] sm:min-h-[calc(100vh-4rem-2rem)] md:min-h-[calc(100vh-4rem-2.5rem)] flex flex-col gap-12 sm:gap-16 md:gap-20 max-w-5xl w-full p-4 sm:p-5 md:p-6'>
           {children}
         </div>
 
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
-            >
-              Supabase
-            </a>
+        <footer className='w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-4 sm:gap-6 md:gap-8 py-8 sm:py-12 md:py-16 px-4'>
+          <p className='text-xs sm:text-sm'>
+            Powered by <strong className='font-bold'>Isotta Sportelli</strong>
           </p>
-          <ThemeSwitcher />
         </footer>
       </div>
     </main>
