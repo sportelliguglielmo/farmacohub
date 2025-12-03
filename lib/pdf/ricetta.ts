@@ -11,7 +11,7 @@ type Farmaco = {
 };
 
 export function downloadRicettaPDF(
-  farmaco: Farmaco,
+  farmaci: Farmaco[],
   malattiaNome: string,
   codiceEsenzione: string | null
 ) {
@@ -146,25 +146,24 @@ export function downloadRicettaPDF(
     yPos += 8;
   }
 
-  // Prepare table data for farmaco - combine principio attivo and nome
+  // Prepare table data for farmaci - combine principio attivo and nome
   // Format: principio_attivo tipo (nome)
-  const principioAttivo = farmaco.principio_attivo || 'N/A';
-  const nomeFarmaco = farmaco.nome || 'N/A';
-
-  // Build the combined string: principio_attivo tipo (nome)
-  const farmacoCombinato = `${principioAttivo} (tipo ${nomeFarmaco})`;
-
   const tableHeaders = ['FARMACO', 'Forma farmaceutica', 'Posologia'];
-  const tableValues = [
-    farmacoCombinato,
-    farmaco.forma_farmaceutica || 'N/A',
-    farmaco.posologia || 'N/A',
-  ];
+  const tableValues = farmaci.map((farmaco) => {
+    const principioAttivo = farmaco.principio_attivo || 'N/A';
+    const nomeFarmaco = farmaco.nome || 'N/A';
+    const farmacoCombinato = `${principioAttivo} (tipo ${nomeFarmaco})`;
+    return [
+      farmacoCombinato,
+      farmaco.forma_farmaceutica || 'N/A',
+      farmaco.posologia || 'N/A',
+    ];
+  });
 
   // Add table with horizontal structure
   autoTable(doc, {
     head: [tableHeaders],
-    body: [tableValues],
+    body: tableValues,
     startY: yPos,
     styles: {
       fontSize: 9,
@@ -248,7 +247,11 @@ export function downloadRicettaPDF(
   );
 
   // Save PDF
-  const fileName = `Piano_Terapeutico_${farmaco.nome.replace(/\s+/g, '_')}_${
+  const pazienteNome = `${pazienteData.nome}_${pazienteData.cognome}`.replace(
+    /\s+/g,
+    '_'
+  );
+  const fileName = `Piano_Terapeutico_${pazienteNome}_${
     new Date().toISOString().split('T')[0]
   }.pdf`;
   doc.save(fileName);

@@ -16,7 +16,7 @@ export default function ProtectedLayout({
     <main className='min-h-screen flex flex-col items-center'>
       <div className='w-full flex flex-col gap-6 sm:gap-8 md:gap-10 items-center'>
         <nav className='w-full flex justify-center border-b border-b-foreground/10 h-14 sm:h-16'>
-          <div className='w-full max-w-5xl flex justify-between items-center p-2 sm:p-3 px-3 sm:px-4 md:px-5 text-xs sm:text-sm'>
+          <div className='w-full flex justify-between items-center p-2 sm:p-3 px-4 sm:px-6 md:px-8 text-xs sm:text-sm'>
             <div className='flex gap-2 sm:gap-3 md:gap-5 items-center font-semibold min-w-0'>
               <Link
                 href={'/protected'}
@@ -42,7 +42,7 @@ export default function ProtectedLayout({
             </div>
           </div>
         </nav>
-        <div className='flex-1 min-h-[calc(100vh-3.5rem-1.5rem)] sm:min-h-[calc(100vh-4rem-2rem)] md:min-h-[calc(100vh-4rem-2.5rem)] flex flex-col gap-12 sm:gap-16 md:gap-20 max-w-5xl w-full p-4 sm:p-5 md:p-6'>
+        <div className='flex-1 min-h-[calc(100vh-3.5rem-1.5rem)] sm:min-h-[calc(100vh-4rem-2rem)] md:min-h-[calc(100vh-4rem-2.5rem)] flex flex-col gap-12 sm:gap-16 md:gap-20 w-full'>
           {children}
         </div>
 

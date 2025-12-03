@@ -28,6 +28,9 @@ import {
   FlaskConical,
   Package,
   Download,
+  Plus,
+  X,
+  ClipboardList,
 } from 'lucide-react';
 
 type Malattia = {
@@ -86,6 +89,7 @@ export default function Page() {
   }, []);
 
   const [filteredFarmaci, setFilteredFarmaci] = useState<Farmaco[]>([]);
+  const [pianoTerapeutico, setPianoTerapeutico] = useState<Farmaco[]>([]);
 
   // Reset all filters when component mounts
   useEffect(() => {
@@ -93,6 +97,7 @@ export default function Page() {
     setSelectedPrincipioAttivo('');
     setSelectedFormaFarmaceutica('');
     setFilteredFarmaci([]);
+    setPianoTerapeutico([]);
   }, []);
 
   // Fetch farmaci by malattia when malattia is selected
@@ -102,6 +107,7 @@ export default function Page() {
         setFilteredFarmaci([]);
         setSelectedPrincipioAttivo('');
         setSelectedFormaFarmaceutica('');
+        setPianoTerapeutico([]); // Reset piano terapeutico when no malattia selected
         return;
       }
 
@@ -112,6 +118,7 @@ export default function Page() {
 
       if (error || !data) {
         setFilteredFarmaci([]);
+        setPianoTerapeutico([]); // Reset piano terapeutico on error
         return;
       }
 
@@ -120,6 +127,7 @@ export default function Page() {
       setFilteredFarmaci(filtered);
       setSelectedPrincipioAttivo('');
       setSelectedFormaFarmaceutica('');
+      setPianoTerapeutico([]); // Reset piano terapeutico when malattia changes
     };
 
     fetchFarmaciByMalattia();
@@ -224,6 +232,11 @@ export default function Page() {
     value: malattia.id,
   }));
 
+  const principioAttivoItems = principiAttivi.map((principio) => ({
+    label: principio,
+    value: principio,
+  }));
+
   // Show results when: malattia + principio attivo selected, and (no forme available OR forma selected)
   const displayFarmaci = useMemo(() => {
     if (allStepsCompleted) {
@@ -240,83 +253,67 @@ export default function Page() {
     finalFarmaci,
   ]);
 
+  // Handler for adding farmaco to piano terapeutico
+  const handleAddToPiano = (farmaco: Farmaco) => {
+    // Check if farmaco is already in piano terapeutico
+    if (!pianoTerapeutico.find((f) => f.id === farmaco.id)) {
+      setPianoTerapeutico([...pianoTerapeutico, farmaco]);
+    }
+  };
+
+  // Handler for removing farmaco from piano terapeutico
+  const handleRemoveFromPiano = (farmacoId: string) => {
+    setPianoTerapeutico(pianoTerapeutico.filter((f) => f.id !== farmacoId));
+  };
+
   // Handler for PDF download
-  const handleDownloadPDF = (farmaco: Farmaco) => {
+  const handleDownloadPDF = () => {
+    if (pianoTerapeutico.length === 0) return;
     const malattiaSelezionata = malattie.find((m) => m.id === selectedMalattia);
     const malattiaNome = malattiaSelezionata?.nome || '';
     const codiceEsenzione = malattiaSelezionata?.codice_esenzione || null;
-    downloadRicettaPDF(farmaco, malattiaNome, codiceEsenzione);
+    downloadRicettaPDF(pianoTerapeutico, malattiaNome, codiceEsenzione);
   };
 
   return (
-    <div className='flex flex-col px-4 pt-2 pb-6 sm:px-5 sm:pt-3 sm:pb-5 md:px-6 md:pt-4 md:pb-6 w-full max-w-7xl mx-auto'>
-      {/* Page Header */}
-      <div className='mb-6 sm:mb-8 md:mb-10'>
-        <div className='flex items-center gap-3 mb-3'>
-          <div className='flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10'>
-            <Pill className='w-5 h-5 sm:w-6 sm:h-6 text-primary' />
+    <div className='flex flex-col xl:flex-row gap-4 sm:gap-6 px-6 pt-2 pb-6 sm:px-8 sm:pt-3 sm:pb-5 md:px-10 md:pt-4 md:pb-6 lg:px-10 w-full'>
+      {/* Main Content Container */}
+      <div className='flex flex-col w-full xl:flex-1'>
+        {/* Page Header */}
+        <div className='mb-6 sm:mb-8 md:mb-10'>
+          <div className='flex items-center gap-3 mb-3'>
+            <div className='flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/10'>
+              <Pill className='w-5 h-5 sm:w-6 sm:h-6 text-primary' />
+            </div>
+            <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight'>
+              Ricerca Farmaci
+            </h1>
           </div>
-          <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight'>
-            Ricerca Farmaci
-          </h1>
+          <p className='text-sm sm:text-base text-muted-foreground max-w-3xl ml-0 sm:ml-14 md:ml-16'>
+            Segui pochi passaggi e trova con velocità e accuratezza il farmaco
+            giusto in base alla condizione medica.
+          </p>
         </div>
-        <p className='text-sm sm:text-base text-muted-foreground max-w-3xl ml-0 sm:ml-14 md:ml-16'>
-          Segui pochi passaggi e trova con velocità e accuratezza il farmaco
-          giusto in base alla condizione medica.
-        </p>
-      </div>
 
-      {/* Progress Bar - Compact */}
-      <div className='mb-4 sm:mb-6'>
-        <div className='flex items-center justify-between text-xs sm:text-sm text-muted-foreground mb-2'>
-          <span className='font-medium'>
-            {allStepsCompleted
-              ? `Completato (${totalSteps} step)`
-              : `Passo ${currentStep} di ${totalSteps}`}
-          </span>
-          <span>{Math.round(progress)}%</span>
-        </div>
-        <div className='w-full h-2.5 bg-muted rounded-full overflow-hidden'>
-          <div
-            className='h-full bg-primary transition-all duration-500 ease-in-out'
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className='flex items-center justify-between mt-3 text-xs sm:text-sm'>
-          <div className='flex items-center gap-2'>
-            {currentStep > 1 ? (
-              <CheckCircle2 className='w-4 h-4 text-primary' />
-            ) : (
-              <Circle className='w-4 h-4 text-muted-foreground' />
-            )}
-            <span
-              className={cn(
-                'font-medium',
-                currentStep > 1 ? 'text-primary' : 'text-muted-foreground'
-              )}
-            >
-              Patologia
+        {/* Progress Bar - Compact */}
+        <div className='mb-4 sm:mb-6'>
+          <div className='flex items-center justify-between text-xs sm:text-sm text-muted-foreground mb-2'>
+            <span className='font-medium'>
+              {allStepsCompleted
+                ? `Completato (${totalSteps} step)`
+                : `Passo ${currentStep} di ${totalSteps}`}
             </span>
+            <span>{Math.round(progress)}%</span>
           </div>
-          <div className='flex items-center gap-2'>
-            {currentStep > 2 ? (
-              <CheckCircle2 className='w-4 h-4 text-primary' />
-            ) : (
-              <Circle className='w-4 h-4 text-muted-foreground' />
-            )}
-            <span
-              className={cn(
-                'font-medium',
-                currentStep > 2 ? 'text-primary' : 'text-muted-foreground'
-              )}
-            >
-              Principio Attivo
-            </span>
+          <div className='w-full h-2.5 bg-muted rounded-full overflow-hidden'>
+            <div
+              className='h-full bg-primary transition-all duration-500 ease-in-out'
+              style={{ width: `${progress}%` }}
+            />
           </div>
-          {/* Show step 3 by default, hide only when we know there are no forme available */}
-          {totalSteps === 3 && (
+          <div className='flex items-center justify-between mt-3 text-xs sm:text-sm'>
             <div className='flex items-center gap-2'>
-              {allStepsCompleted ? (
+              {currentStep > 1 ? (
                 <CheckCircle2 className='w-4 h-4 text-primary' />
               ) : (
                 <Circle className='w-4 h-4 text-muted-foreground' />
@@ -324,227 +321,354 @@ export default function Page() {
               <span
                 className={cn(
                   'font-medium',
-                  allStepsCompleted ? 'text-primary' : 'text-muted-foreground'
+                  currentStep > 1 ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
-                Forma
+                Patologia
               </span>
             </div>
-          )}
+            <div className='flex items-center gap-2'>
+              {currentStep > 2 ? (
+                <CheckCircle2 className='w-4 h-4 text-primary' />
+              ) : (
+                <Circle className='w-4 h-4 text-muted-foreground' />
+              )}
+              <span
+                className={cn(
+                  'font-medium',
+                  currentStep > 2 ? 'text-primary' : 'text-muted-foreground'
+                )}
+              >
+                Principio Attivo
+              </span>
+            </div>
+            {/* Show step 3 by default, hide only when we know there are no forme available */}
+            {totalSteps === 3 && (
+              <div className='flex items-center gap-2'>
+                {allStepsCompleted ? (
+                  <CheckCircle2 className='w-4 h-4 text-primary' />
+                ) : (
+                  <Circle className='w-4 h-4 text-muted-foreground' />
+                )}
+                <span
+                  className={cn(
+                    'font-medium',
+                    allStepsCompleted ? 'text-primary' : 'text-muted-foreground'
+                  )}
+                >
+                  Forma
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Filters and Results in 2 columns */}
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6'>
+          {/* Filters */}
+          <div className='flex flex-col gap-4 sm:gap-5'>
+            <Card>
+              <CardHeader className='pb-3'>
+                <CardTitle className='text-base sm:text-lg flex items-center gap-2'>
+                  <Pill className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
+                  Filtri di Ricerca
+                </CardTitle>
+                <CardDescription>
+                  Seleziona i criteri per trovare il farmaco giusto
+                </CardDescription>
+              </CardHeader>
+              <CardContent className='space-y-4 sm:space-y-5'>
+                {/* Step 1: Select Malattia */}
+                <div className='space-y-2'>
+                  <label className='text-sm font-medium flex items-center gap-2'>
+                    <span className='flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
+                      1
+                    </span>
+                    Seleziona Patologia
+                  </label>
+                  <Combobox
+                    key={selectedMalattia || 'empty'}
+                    items={malattiaItems}
+                    value={selectedMalattia}
+                    onValueChange={setSelectedMalattia}
+                    placeholder='Cerca una patologia...'
+                    className='w-full'
+                  />
+                  {selectedMalattia && (
+                    <Badge variant='secondary' className='w-fit'>
+                      {malattie.find((m) => m.id === selectedMalattia)?.nome}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Step 2: Select Principio Attivo */}
+                {selectedMalattia && (
+                  <div className='space-y-2'>
+                    <label className='text-sm font-medium flex items-center gap-2'>
+                      <span className='flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
+                        2
+                      </span>
+                      Seleziona Principio Attivo
+                    </label>
+                    <Combobox
+                      key={selectedPrincipioAttivo || 'empty'}
+                      items={principioAttivoItems}
+                      value={selectedPrincipioAttivo}
+                      onValueChange={setSelectedPrincipioAttivo}
+                      placeholder='Cerca un principio attivo...'
+                      className='w-full'
+                    />
+                    {selectedPrincipioAttivo && (
+                      <Badge variant='secondary' className='w-fit'>
+                        {selectedPrincipioAttivo}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* Step 3: Select Forma Farmaceutica - Only show if there are forme available */}
+                {selectedPrincipioAttivo && hasFormeFarmaceutiche && (
+                  <div className='space-y-2'>
+                    <label className='text-sm font-medium flex items-center gap-2'>
+                      <span className='flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
+                        3
+                      </span>
+                      Seleziona Forma Farmaceutica
+                    </label>
+                    <Select
+                      value={selectedFormaFarmaceutica}
+                      onValueChange={setSelectedFormaFarmaceutica}
+                    >
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder='Seleziona una forma farmaceutica' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formeFarmaceutiche.map((forma) => (
+                          <SelectItem key={forma} value={forma}>
+                            {forma}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedFormaFarmaceutica && (
+                      <Badge variant='secondary' className='w-fit'>
+                        {selectedFormaFarmaceutica}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Results */}
+          <div className='flex flex-col'>
+            <Card className='w-full'>
+              <CardHeader className='pb-3'>
+                <CardTitle className='text-base sm:text-lg flex items-center gap-2'>
+                  <Package className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
+                  Risultati
+                  {displayFarmaci.length > 0 && (
+                    <Badge variant='secondary' className='ml-2'>
+                      {displayFarmaci.length}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {displayFarmaci.length > 0 ? (
+                  <div className='grid grid-cols-1 gap-3 sm:gap-4'>
+                    {displayFarmaci.map((farmaco) => (
+                      <Card
+                        key={farmaco.id}
+                        className='border-l-4 border-l-primary'
+                      >
+                        <CardHeader className='pb-2'>
+                          <CardTitle className='text-sm sm:text-base flex items-start justify-between gap-2'>
+                            <span>{farmaco.nome}</span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className='space-y-2 pt-0'>
+                          <div className='flex flex-wrap gap-2'>
+                            {farmaco.principio_attivo && (
+                              <Badge variant='outline' className='text-xs'>
+                                <FlaskConical className='w-3 h-3 mr-1' />
+                                {farmaco.principio_attivo}
+                              </Badge>
+                            )}
+                            {farmaco.forma_farmaceutica && (
+                              <Badge variant='outline' className='text-xs'>
+                                {farmaco.forma_farmaceutica}
+                              </Badge>
+                            )}
+                            {farmaco.tipologia && (
+                              <Badge variant='outline' className='text-xs'>
+                                {farmaco.tipologia}
+                              </Badge>
+                            )}
+                          </div>
+                          {farmaco.posologia && (
+                            <p className='text-xs sm:text-sm text-muted-foreground'>
+                              <span className='font-medium'>Posologia:</span>{' '}
+                              {farmaco.posologia}
+                            </p>
+                          )}
+                          {selectedMalattia && (
+                            <p className='text-xs text-muted-foreground'>
+                              <span className='font-medium'>Per:</span>{' '}
+                              {
+                                malattie.find((m) => m.id === selectedMalattia)
+                                  ?.nome
+                              }
+                            </p>
+                          )}
+                          <div className='pt-2'>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              className='w-full sm:w-auto'
+                              onClick={() => handleAddToPiano(farmaco)}
+                              disabled={
+                                !!pianoTerapeutico.find(
+                                  (f) => f.id === farmaco.id
+                                )
+                              }
+                            >
+                              {pianoTerapeutico.find(
+                                (f) => f.id === farmaco.id
+                              ) ? (
+                                <>
+                                  <CheckCircle2 className='w-4 h-4 mr-2' />
+                                  Già nel Piano
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className='w-4 h-4 mr-2' />
+                                  Aggiungi a Piano Terapeutico
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : allStepsCompleted && displayFarmaci.length === 0 ? (
+                  <div className='flex flex-col items-center justify-center text-center p-8 min-h-[200px]'>
+                    <Package className='w-12 h-12 text-muted-foreground/50 mb-4' />
+                    <p className='text-sm text-muted-foreground'>
+                      Nessun farmaco trovato con i criteri selezionati.
+                    </p>
+                  </div>
+                ) : (
+                  <div className='flex flex-col items-center justify-center text-center p-8 min-h-[200px]'>
+                    <Pill className='w-12 h-12 text-muted-foreground/50 mb-4' />
+                    <p className='text-sm text-muted-foreground'>
+                      {currentStep === 1
+                        ? 'Seleziona una patologia per iniziare la ricerca'
+                        : currentStep === 2
+                        ? 'Seleziona un principio attivo per continuare'
+                        : hasFormeFarmaceutiche
+                        ? 'Seleziona una forma farmaceutica per vedere i risultati'
+                        : 'Seleziona un principio attivo per vedere i risultati'}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 
-      {/* Two Column Layout */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6'>
-        {/* Left: Filters */}
-        <div className='flex flex-col gap-4 sm:gap-5'>
-          <Card>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-base sm:text-lg flex items-center gap-2'>
-                <Pill className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
-                Filtri di Ricerca
-              </CardTitle>
-              <CardDescription>
-                Seleziona i criteri per trovare il farmaco giusto
+      {/* Right: Piano Terapeutico - Always visible outside main container */}
+      <div className='flex flex-col w-full xl:w-[400px] shrink-0'>
+        <Card className='w-full sticky top-4'>
+          <CardHeader className='pb-2'>
+            <CardTitle className='text-base sm:text-lg flex items-center gap-2'>
+              <ClipboardList className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
+              Piano Terapeutico
+              {pianoTerapeutico.length > 0 && (
+                <Badge variant='secondary' className='ml-2'>
+                  {pianoTerapeutico.length}
+                </Badge>
+              )}
+            </CardTitle>
+            {pianoTerapeutico.length > 0 && (
+              <CardDescription className='text-xs'>
+                I farmaci selezionati per il piano terapeutico
               </CardDescription>
-            </CardHeader>
-            <CardContent className='space-y-4 sm:space-y-5'>
-              {/* Step 1: Select Malattia */}
-              <div className='space-y-2'>
-                <label className='text-sm font-medium flex items-center gap-2'>
-                  <span className='flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
-                    1
-                  </span>
-                  Seleziona Patologia
-                </label>
-                <Combobox
-                  key={selectedMalattia || 'empty'}
-                  items={malattiaItems}
-                  value={selectedMalattia}
-                  onValueChange={setSelectedMalattia}
-                  placeholder='Cerca una patologia...'
-                  className='w-full'
-                />
-                {selectedMalattia && (
-                  <Badge variant='secondary' className='w-fit'>
-                    {malattie.find((m) => m.id === selectedMalattia)?.nome}
-                  </Badge>
-                )}
-              </div>
-
-              {/* Step 2: Select Principio Attivo */}
-              {selectedMalattia && (
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium flex items-center gap-2'>
-                    <span className='flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
-                      2
-                    </span>
-                    Seleziona Principio Attivo
-                  </label>
-                  <Select
-                    value={selectedPrincipioAttivo}
-                    onValueChange={setSelectedPrincipioAttivo}
-                  >
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='Seleziona un principio attivo' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {principiAttivi.length > 0 ? (
-                        principiAttivi.map((principio) => (
-                          <SelectItem key={principio} value={principio}>
-                            {principio}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value='no-data' disabled>
-                          Nessun principio attivo disponibile
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {selectedPrincipioAttivo && (
-                    <Badge variant='secondary' className='w-fit'>
-                      {selectedPrincipioAttivo}
-                    </Badge>
-                  )}
-                </div>
-              )}
-
-              {/* Step 3: Select Forma Farmaceutica - Only show if there are forme available */}
-              {selectedPrincipioAttivo && hasFormeFarmaceutiche && (
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium flex items-center gap-2'>
-                    <span className='flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
-                      3
-                    </span>
-                    Seleziona Forma Farmaceutica
-                  </label>
-                  <Select
-                    value={selectedFormaFarmaceutica}
-                    onValueChange={setSelectedFormaFarmaceutica}
-                  >
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder='Seleziona una forma farmaceutica' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formeFarmaceutiche.map((forma) => (
-                        <SelectItem key={forma} value={forma}>
-                          {forma}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedFormaFarmaceutica && (
-                    <Badge variant='secondary' className='w-fit'>
-                      {selectedFormaFarmaceutica}
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right: Results */}
-        <div className='flex flex-col'>
-          <Card className='w-full'>
-            <CardHeader className='pb-3'>
-              <CardTitle className='text-base sm:text-lg flex items-center gap-2'>
-                <Package className='w-4 h-4 sm:w-5 sm:h-5 text-primary' />
-                Risultati
-                {displayFarmaci.length > 0 && (
-                  <Badge variant='secondary' className='ml-2'>
-                    {displayFarmaci.length}
-                  </Badge>
-                )}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {displayFarmaci.length > 0 ? (
-                <div className='grid grid-cols-1 gap-3 sm:gap-4'>
-                  {displayFarmaci.map((farmaco) => (
+            )}
+          </CardHeader>
+          <CardContent className='space-y-1.5 p-4'>
+            {pianoTerapeutico.length > 0 ? (
+              <>
+                <div className='space-y-2 max-h-[500px] overflow-y-auto'>
+                  {pianoTerapeutico.map((farmaco) => (
                     <Card
                       key={farmaco.id}
-                      className='border-l-4 border-l-primary'
+                      className='border-l-4 border-l-primary relative'
                     >
-                      <CardHeader className='pb-2'>
-                        <CardTitle className='text-sm sm:text-base flex items-start justify-between gap-2'>
-                          <span>{farmaco.nome}</span>
+                      <CardHeader className='pb-1 pr-8 pt-3 px-3'>
+                        <CardTitle className='text-xs sm:text-sm'>
+                          {farmaco.nome}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className='space-y-2 pt-0'>
-                        <div className='flex flex-wrap gap-2'>
+                      <CardContent className='space-y-1 pt-0 px-3 pb-3'>
+                        <div className='flex flex-wrap gap-1.5'>
                           {farmaco.principio_attivo && (
-                            <Badge variant='outline' className='text-xs'>
-                              <FlaskConical className='w-3 h-3 mr-1' />
+                            <Badge
+                              variant='outline'
+                              className='text-[10px] px-1.5 py-0.5'
+                            >
+                              <FlaskConical className='w-2.5 h-2.5 mr-1' />
                               {farmaco.principio_attivo}
                             </Badge>
                           )}
                           {farmaco.forma_farmaceutica && (
-                            <Badge variant='outline' className='text-xs'>
+                            <Badge
+                              variant='outline'
+                              className='text-[10px] px-1.5 py-0.5'
+                            >
                               {farmaco.forma_farmaceutica}
                             </Badge>
                           )}
-                          {farmaco.tipologia && (
-                            <Badge variant='outline' className='text-xs'>
-                              {farmaco.tipologia}
-                            </Badge>
-                          )}
-                        </div>
-                        {farmaco.posologia && (
-                          <p className='text-xs sm:text-sm text-muted-foreground'>
-                            <span className='font-medium'>Posologia:</span>{' '}
-                            {farmaco.posologia}
-                          </p>
-                        )}
-                        {selectedMalattia && (
-                          <p className='text-xs text-muted-foreground'>
-                            <span className='font-medium'>Per:</span>{' '}
-                            {
-                              malattie.find((m) => m.id === selectedMalattia)
-                                ?.nome
-                            }
-                          </p>
-                        )}
-                        <div className='pt-2'>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='w-full sm:w-auto'
-                            onClick={() => handleDownloadPDF(farmaco)}
-                          >
-                            <Download className='w-4 h-4 mr-2' />
-                            Scarica Piano Terapeutico
-                          </Button>
                         </div>
                       </CardContent>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        className='absolute top-1.5 right-1.5 h-5 w-5'
+                        onClick={() => handleRemoveFromPiano(farmaco.id)}
+                      >
+                        <X className='w-3 h-3' />
+                      </Button>
                     </Card>
                   ))}
                 </div>
-              ) : allStepsCompleted && displayFarmaci.length === 0 ? (
-                <div className='flex flex-col items-center justify-center text-center p-8 min-h-[200px]'>
-                  <Package className='w-12 h-12 text-muted-foreground/50 mb-4' />
-                  <p className='text-sm text-muted-foreground'>
-                    Nessun farmaco trovato con i criteri selezionati.
-                  </p>
+                <div className='pt-2 border-t mt-2'>
+                  <Button
+                    className='w-full'
+                    onClick={handleDownloadPDF}
+                    size='default'
+                  >
+                    <Download className='w-3.5 h-3.5 mr-2' />
+                    Scarica Piano Terapeutico
+                  </Button>
                 </div>
-              ) : (
-                <div className='flex flex-col items-center justify-center text-center p-8 min-h-[200px]'>
-                  <Pill className='w-12 h-12 text-muted-foreground/50 mb-4' />
-                  <p className='text-sm text-muted-foreground'>
-                    {currentStep === 1
-                      ? 'Seleziona una patologia per iniziare la ricerca'
-                      : currentStep === 2
-                      ? 'Seleziona un principio attivo per continuare'
-                      : hasFormeFarmaceutiche
-                      ? 'Seleziona una forma farmaceutica per vedere i risultati'
-                      : 'Seleziona un principio attivo per vedere i risultati'}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </>
+            ) : (
+              <div className='flex flex-col items-center justify-center text-center p-8 min-h-[200px]'>
+                <ClipboardList className='w-12 h-12 text-muted-foreground/50 mb-4' />
+                <p className='text-sm text-muted-foreground'>
+                  Nessun farmaco nel piano terapeutico.
+                </p>
+                <p className='text-sm text-muted-foreground mt-2'>
+                  Aggiungi farmaci dai risultati per creare il piano.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
