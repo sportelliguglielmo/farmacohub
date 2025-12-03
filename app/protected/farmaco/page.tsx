@@ -514,7 +514,7 @@ export default function Page() {
                             onClick={() => handleDownloadPDF(farmaco)}
                           >
                             <Download className='w-4 h-4 mr-2' />
-                            Scarica Ricetta
+                            Scarica Piano Terapeutico
                           </Button>
                         </div>
                       </CardContent>

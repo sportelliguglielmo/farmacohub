@@ -248,7 +248,7 @@ export function downloadRicettaPDF(
   );
 
   // Save PDF
-  const fileName = `Ricetta_${farmaco.nome.replace(/\s+/g, '_')}_${
+  const fileName = `Piano_Terapeutico_${farmaco.nome.replace(/\s+/g, '_')}_${
     new Date().toISOString().split('T')[0]
   }.pdf`;
   doc.save(fileName);
