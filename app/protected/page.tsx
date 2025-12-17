@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,

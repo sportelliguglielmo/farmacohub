@@ -42,7 +42,6 @@ export function SearchFilters({
   malattiaItems,
   selectedMalattia,
   onMalattiaChange,
-  principiAttivi,
   principioAttivoItems,
   selectedPrincipioAttivo,
   onPrincipioAttivoChange,
@@ -146,4 +145,3 @@ export function SearchFilters({
     </Card>
   );
 }
-

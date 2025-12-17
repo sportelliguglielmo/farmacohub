@@ -1,13 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Download, X } from 'lucide-react';
+import { ClipboardList, Download } from 'lucide-react';
 import { FarmacoCard, type Farmaco } from './farmaco-card';
 
 interface TherapeuticPlanProps {

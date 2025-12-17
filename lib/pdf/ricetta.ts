@@ -1,6 +1,13 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+// Type extension for jsPDF with autotable plugin properties
+interface jsPDFWithAutoTable extends jsPDF {
+  lastAutoTable?: {
+    finalY?: number;
+  };
+}
+
 type Farmaco = {
   id: string;
   nome: string;
@@ -15,7 +22,7 @@ export function downloadRicettaPDF(
   malattiaNome: string,
   codiceEsenzione: string | null
 ) {
-  const doc = new jsPDF();
+  const doc = new jsPDF() as jsPDFWithAutoTable;
 
   // Mock data for Italian prescription
   const pazienteData = {
@@ -197,7 +204,7 @@ export function downloadRicettaPDF(
   });
 
   // Get final Y position after table
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  const finalY = doc.lastAutoTable?.finalY || yPos + 50;
   yPos = finalY + 12;
 
   // Firma del Medico
