@@ -15,6 +15,7 @@ type Farmaco = {
   forma_farmaceutica: string | null;
   posologia: string | null;
   tipologia: string | null;
+  commenti?: string | null;
 };
 
 export function downloadRicettaPDF(
@@ -153,13 +154,21 @@ export function downloadRicettaPDF(
     yPos += 8;
   }
 
-  // Prepare table data for farmaci - combine principio attivo and nome
-  // Format: principio_attivo tipo (nome)
+  // Prepare table data for farmaci - combine principio attivo, commenti and nome
+  // Format: principio_attivo - commenti (tipo nome_farmaco)
   const tableHeaders = ['FARMACO', 'Forma farmaceutica', 'Posologia'];
   const tableValues = farmaci.map((farmaco) => {
     const principioAttivo = farmaco.principio_attivo || 'N/A';
     const nomeFarmaco = farmaco.nome || 'N/A';
-    const farmacoCombinato = `${principioAttivo} (tipo ${nomeFarmaco})`;
+    const commenti = farmaco.commenti || '';
+
+    // Format: principio_attivo - commenti (tipo nome_farmaco)
+    // If no commenti, just show: principio_attivo (tipo nome_farmaco)
+    let farmacoCombinato = `${principioAttivo} (tipo ${nomeFarmaco})`;
+    if (commenti) {
+      farmacoCombinato = `${principioAttivo} - ${commenti} (tipo ${nomeFarmaco})`;
+    }
+
     return [
       farmacoCombinato,
       farmaco.forma_farmaceutica || 'N/A',

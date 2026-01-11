@@ -54,10 +54,19 @@ export function Combobox({
             }
           }}
         >
-          {value
-            ? items.find((item) => item.value === value)?.label
-            : placeholder}
-          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+          <span
+            className='truncate text-left flex-1 min-w-0 mr-2'
+            title={
+              value
+                ? items.find((item) => item.value === value)?.label
+                : placeholder
+            }
+          >
+            {value
+              ? items.find((item) => item.value === value)?.label
+              : placeholder}
+          </span>
+          <ChevronsUpDown className='h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
       <PopoverContent

@@ -1,7 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { FlaskConical, CheckCircle2, Plus, X } from 'lucide-react';
+import { useState } from 'react';
 
 export type Farmaco = {
   id: string;
@@ -10,6 +13,7 @@ export type Farmaco = {
   forma_farmaceutica: string | null;
   posologia: string | null;
   tipologia: string | null;
+  commenti?: string | null;
 };
 
 interface FarmacoCardProps {
@@ -49,6 +53,11 @@ export function FarmacoCard({
               </Badge>
             )}
           </div>
+          {farmaco.commenti && (
+            <p className='text-[10px] text-muted-foreground mt-1.5'>
+              <span className='font-medium'>Note:</span> {farmaco.commenti}
+            </p>
+          )}
         </CardContent>
         {onRemove && (
           <Button
@@ -64,6 +73,18 @@ export function FarmacoCard({
       </Card>
     );
   }
+
+  const [commenti, setCommenti] = useState<string>(farmaco.commenti || '');
+
+  const handleAddToPiano = () => {
+    const farmacoConCommenti = {
+      ...farmaco,
+      commenti: commenti.trim() || null,
+    };
+    onAddToPiano(farmacoConCommenti);
+    // Reset commenti after adding
+    setCommenti('');
+  };
 
   return (
     <Card className='border-l-4 border-l-primary'>
@@ -101,12 +122,30 @@ export function FarmacoCard({
             <span className='font-medium'>Per:</span> {malattiaNome}
           </p>
         )}
+        {!isInPiano && (
+          <div className='space-y-1.5 pt-1'>
+            <Label
+              htmlFor={`commenti-${farmaco.id}`}
+              className='text-xs font-medium'
+            >
+              Commenti aggiuntivi (opzionale)
+            </Label>
+            <Input
+              id={`commenti-${farmaco.id}`}
+              type='text'
+              placeholder='Aggiungi note o commenti sul farmaco...'
+              value={commenti}
+              onChange={(e) => setCommenti(e.target.value)}
+              className='text-xs h-8'
+            />
+          </div>
+        )}
         <div className='pt-2'>
           <Button
             variant='outline'
             size='sm'
             className='w-full sm:w-auto'
-            onClick={() => onAddToPiano(farmaco)}
+            onClick={handleAddToPiano}
             disabled={isInPiano}
           >
             {isInPiano ? (
