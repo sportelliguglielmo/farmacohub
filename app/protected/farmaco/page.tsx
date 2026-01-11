@@ -1,7 +1,7 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { downloadRicettaPDF } from '@/lib/pdf/ricetta';
 import { PageHeader } from '@/components/farmaco/page-header';
 import { ProgressStepper } from '@/components/farmaco/progress-stepper';
@@ -26,7 +26,8 @@ export default function Page() {
     useState<string>('');
   const [filteredFarmaci, setFilteredFarmaci] = useState<Farmaco[]>([]);
   const [pianoTerapeutico, setPianoTerapeutico] = useState<Farmaco[]>([]);
-  const supabase = createClient();
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
 
   // Fetch all farmaci
   useEffect(() => {

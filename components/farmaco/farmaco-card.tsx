@@ -33,6 +33,8 @@ export function FarmacoCard({
   variant = 'default',
   onRemove,
 }: FarmacoCardProps) {
+  const [commenti, setCommenti] = useState<string>(farmaco.commenti || '');
+
   if (variant === 'compact') {
     return (
       <Card className='border-l-4 border-l-primary relative'>
@@ -73,8 +75,6 @@ export function FarmacoCard({
       </Card>
     );
   }
-
-  const [commenti, setCommenti] = useState<string>(farmaco.commenti || '');
 
   const handleAddToPiano = () => {
     const farmacoConCommenti = {
