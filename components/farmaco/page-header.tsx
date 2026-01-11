@@ -8,14 +8,13 @@ export function PageHeader() {
           <Pill className='w-5 h-5 sm:w-6 sm:h-6 text-primary' />
         </div>
         <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight'>
-          Ricerca Farmaci
+          Ricerca Medicinali
         </h1>
       </div>
-      <p className='text-sm sm:text-base text-muted-foreground max-w-3xl ml-0 sm:ml-14 md:ml-16'>
+      <p className='text-sm sm:text-base  max-w-3xl ml-0 sm:ml-14 md:ml-16'>
         Segui pochi passaggi e trova con velocità e accuratezza il farmaco
         giusto in base alla condizione medica.
       </p>
     </div>
   );
 }
-

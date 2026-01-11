@@ -16,7 +16,7 @@ export function ProgressStepper({
 }: ProgressStepperProps) {
   return (
     <div className='mb-4 sm:mb-6'>
-      <div className='flex items-center justify-between text-xs sm:text-sm text-muted-foreground mb-2'>
+      <div className='flex items-center justify-between text-xs sm:text-sm mb-2'>
         <span className='font-medium'>
           {allStepsCompleted
             ? `Completato (${totalSteps} step)`
@@ -35,13 +35,10 @@ export function ProgressStepper({
           {currentStep > 1 ? (
             <CheckCircle2 className='w-4 h-4 text-primary' />
           ) : (
-            <Circle className='w-4 h-4 text-muted-foreground' />
+            <Circle className='w-4 h-4' />
           )}
           <span
-            className={cn(
-              'font-medium',
-              currentStep > 1 ? 'text-primary' : 'text-muted-foreground'
-            )}
+            className={cn('font-medium', currentStep > 1 ? 'text-primary' : '')}
           >
             Patologia
           </span>
@@ -50,13 +47,10 @@ export function ProgressStepper({
           {currentStep > 2 ? (
             <CheckCircle2 className='w-4 h-4 text-primary' />
           ) : (
-            <Circle className='w-4 h-4 text-muted-foreground' />
+            <Circle className='w-4 h-4 ' />
           )}
           <span
-            className={cn(
-              'font-medium',
-              currentStep > 2 ? 'text-primary' : 'text-muted-foreground'
-            )}
+            className={cn('font-medium', currentStep > 2 ? 'text-primary' : '')}
           >
             Principio Attivo
           </span>
@@ -66,12 +60,12 @@ export function ProgressStepper({
             {allStepsCompleted ? (
               <CheckCircle2 className='w-4 h-4 text-primary' />
             ) : (
-              <Circle className='w-4 h-4 text-muted-foreground' />
+              <Circle className='w-4 h-4 ' />
             )}
             <span
               className={cn(
                 'font-medium',
-                allStepsCompleted ? 'text-primary' : 'text-muted-foreground'
+                allStepsCompleted ? 'text-primary' : ''
               )}
             >
               Forma
@@ -82,4 +76,3 @@ export function ProgressStepper({
     </div>
   );
 }
-
