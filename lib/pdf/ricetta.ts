@@ -159,13 +159,13 @@ export function downloadRicettaPDF(
   // If principio_attivo === nome_farmaco, show only principio_attivo (and commenti if present)
   const tableHeaders = ['FARMACO', 'Forma farmaceutica', 'Posologia'];
   const tableValues = farmaci.map((farmaco) => {
-    const principioAttivo = farmaco.principio_attivo || 'N/A';
-    const nomeFarmaco = farmaco.nome || 'N/A';
+    const principioAttivo = farmaco.principio_attivo || '-';
+    const nomeFarmaco = farmaco.nome || '-';
     const commenti = farmaco.commenti || '';
 
     // Check if principio attivo and nome farmaco are the same (case-insensitive, trimmed)
-    const isSame = principioAttivo !== 'N/A' && 
-                   nomeFarmaco !== 'N/A' && 
+    const isSame = principioAttivo !== '-' && 
+                   nomeFarmaco !== '-' && 
                    principioAttivo.trim().toLowerCase() === nomeFarmaco.trim().toLowerCase();
 
     let farmacoCombinato: string;
@@ -188,8 +188,8 @@ export function downloadRicettaPDF(
 
     return [
       farmacoCombinato,
-      farmaco.forma_farmaceutica || 'N/A',
-      farmaco.posologia || 'N/A',
+      farmaco.forma_farmaceutica || '-',
+      farmaco.posologia || '-',
     ];
   });
 
