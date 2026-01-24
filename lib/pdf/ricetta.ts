@@ -156,17 +156,34 @@ export function downloadRicettaPDF(
 
   // Prepare table data for farmaci - combine principio attivo, commenti and nome
   // Format: principio_attivo - commenti (tipo nome_farmaco)
+  // If principio_attivo === nome_farmaco, show only principio_attivo (and commenti if present)
   const tableHeaders = ['FARMACO', 'Forma farmaceutica', 'Posologia'];
   const tableValues = farmaci.map((farmaco) => {
     const principioAttivo = farmaco.principio_attivo || 'N/A';
     const nomeFarmaco = farmaco.nome || 'N/A';
     const commenti = farmaco.commenti || '';
 
-    // Format: principio_attivo - commenti (tipo nome_farmaco)
-    // If no commenti, just show: principio_attivo (tipo nome_farmaco)
-    let farmacoCombinato = `${principioAttivo} (tipo ${nomeFarmaco})`;
-    if (commenti) {
-      farmacoCombinato = `${principioAttivo} - ${commenti} (tipo ${nomeFarmaco})`;
+    // Check if principio attivo and nome farmaco are the same (case-insensitive, trimmed)
+    const isSame = principioAttivo !== 'N/A' && 
+                   nomeFarmaco !== 'N/A' && 
+                   principioAttivo.trim().toLowerCase() === nomeFarmaco.trim().toLowerCase();
+
+    let farmacoCombinato: string;
+    
+    if (isSame) {
+      // If they are the same, show only principio attivo (and commenti if present)
+      if (commenti) {
+        farmacoCombinato = `${principioAttivo} - ${commenti}`;
+      } else {
+        farmacoCombinato = principioAttivo;
+      }
+    } else {
+      // Normal format: principio_attivo - commenti (tipo nome_farmaco)
+      if (commenti) {
+        farmacoCombinato = `${principioAttivo} - ${commenti} (tipo ${nomeFarmaco})`;
+      } else {
+        farmacoCombinato = `${principioAttivo} (tipo ${nomeFarmaco})`;
+      }
     }
 
     return [
