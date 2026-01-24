@@ -193,7 +193,7 @@ export function downloadRicettaPDF(
     ];
   });
 
-  // Add table with horizontal structure
+  // Add table with horizontal structure and automatic pagination
   autoTable(doc, {
     head: [tableHeaders],
     body: tableValues,
@@ -203,6 +203,7 @@ export function downloadRicettaPDF(
       cellPadding: 3,
       lineColor: [0, 0, 0],
       lineWidth: 0.1,
+      overflow: 'linebreak', // Wrap text in cells that are too long
     },
     headStyles: {
       fillColor: [240, 240, 240],
@@ -217,23 +218,44 @@ export function downloadRicettaPDF(
       textColor: [0, 0, 0],
       lineColor: [0, 0, 0],
       lineWidth: 0.1,
+      overflow: 'linebreak', // Wrap text in body cells
     },
     alternateRowStyles: {
       fillColor: [255, 255, 255], // Ensure alternate rows are also white
     },
     columnStyles: {
-      0: { cellWidth: 90 }, // Farmaco (combined column - wider)
-      1: { cellWidth: 50 }, // Forma Farmaceutica
-      2: { cellWidth: 50 }, // Posologia
+      0: { cellWidth: 90, overflow: 'linebreak' }, // Farmaco (combined column - wider)
+      1: { cellWidth: 50, overflow: 'linebreak' }, // Forma Farmaceutica
+      2: { cellWidth: 50, overflow: 'linebreak' }, // Posologia
     },
-    margin: { left: 14, right: 14 },
+    margin: { left: 14, right: 14, bottom: 20 },
+    // Enable automatic page breaks - table will continue on next page if needed
+    showHead: 'everyPage', // Show header on every page
+    tableWidth: 'wrap', // Auto-calculate table width
   });
 
-  // Get final Y position after table
+  // Get final Y position after table (handles multi-page tables)
   const finalY = doc.lastAutoTable?.finalY || yPos + 50;
-  yPos = finalY + 12;
+  
+  // Check if we need a new page for remaining content
+  const pageHeight = doc.internal.pageSize.height;
+  const remainingSpace = pageHeight - finalY;
+  const requiredSpace = 50; // Space needed for signature, date, and footer
+  
+  if (remainingSpace < requiredSpace) {
+    doc.addPage();
+    yPos = 20; // Start from top of new page
+  } else {
+    yPos = finalY + 12; // Add spacing after table
+  }
 
   // Firma del Medico
+  // Check if we have enough space, otherwise add new page
+  if (yPos + 40 > pageHeight) {
+    doc.addPage();
+    yPos = 20;
+  }
+  
   doc.setFontSize(10);
   doc.text('Firma del Medico:', 14, yPos);
   doc.setDrawColor(0, 0, 0);
@@ -243,7 +265,7 @@ export function downloadRicettaPDF(
   // Data emissione - under signature
   doc.setFontSize(10);
   doc.text(`Data di Emissione: ${dataEmissione}`, 14, yPos);
-  yPos += 12;
+  yPos += 15;
 
   // Ospedale/ASL Information footer - compact
   const ospedaleData = {
@@ -253,6 +275,12 @@ export function downloadRicettaPDF(
     telefonoEmergenza: '118',
     email: 'info@aslroma1.it',
   };
+
+  // Check if we need a new page for footer
+  if (yPos + 30 > pageHeight) {
+    doc.addPage();
+    yPos = 20;
+  }
 
   // Compact footer with separator line
   doc.setDrawColor(200, 200, 200);
@@ -267,17 +295,33 @@ export function downloadRicettaPDF(
     14,
     yPos + 4
   );
+  yPos += 10;
 
-  // Footer note
-  yPos = 280;
-  doc.setFontSize(8);
-  doc.setTextColor(120, 120, 120);
-  doc.text(
-    'Piano terapeutico generato automaticamente. Per uso informativo e non commerciale.',
-    105,
-    yPos,
-    { align: 'center' }
-  );
+  // Footer note - position dynamically at bottom of current page
+  const footerY = pageHeight - 15; // 15mm from bottom
+  
+  // Check if footer would overlap with content above
+  if (footerY > yPos + 5) {
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text(
+      'Piano terapeutico generato automaticamente. Per uso informativo e non commerciale.',
+      105,
+      footerY,
+      { align: 'center' }
+    );
+  } else {
+    // If not enough space, add to next page
+    doc.addPage();
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text(
+      'Piano terapeutico generato automaticamente. Per uso informativo e non commerciale.',
+      105,
+      pageHeight - 15,
+      { align: 'center' }
+    );
+  }
 
   // Save PDF
   const pazienteNome = `${pazienteData.nome}_${pazienteData.cognome}`.replace(
