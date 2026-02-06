@@ -34,6 +34,9 @@ export function FarmacoCard({
   onRemove,
 }: FarmacoCardProps) {
   const [commenti, setCommenti] = useState<string>(farmaco.commenti || '');
+  const [posologiaModificata, setPosologiaModificata] = useState<string>(
+    farmaco.posologia || ''
+  );
 
   if (variant === 'compact') {
     return (
@@ -55,6 +58,12 @@ export function FarmacoCard({
               </Badge>
             )}
           </div>
+          {farmaco.posologia && (
+            <p className='text-[10px] text-muted-foreground mt-1.5'>
+              <span className='font-medium'>Posologia:</span>{' '}
+              {farmaco.posologia}
+            </p>
+          )}
           {farmaco.commenti && (
             <p className='text-[10px] text-muted-foreground mt-1.5'>
               <span className='font-medium'>Note:</span> {farmaco.commenti}
@@ -77,13 +86,17 @@ export function FarmacoCard({
   }
 
   const handleAddToPiano = () => {
-    const farmacoConCommenti = {
+    const posologiaFinale = posologiaModificata.trim()
+      ? posologiaModificata.trim()
+      : farmaco.posologia;
+    const farmacoPerPiano = {
       ...farmaco,
       commenti: commenti.trim() || null,
+      posologia: posologiaFinale,
     };
-    onAddToPiano(farmacoConCommenti);
-    // Reset commenti after adding
+    onAddToPiano(farmacoPerPiano);
     setCommenti('');
+    setPosologiaModificata(farmaco.posologia || '');
   };
 
   return (
@@ -112,33 +125,47 @@ export function FarmacoCard({
             </Badge>
           )}
         </div>
-        {farmaco.posologia && (
-          <p className='text-xs sm:text-sm text-muted-foreground'>
-            <span className='font-medium'>Posologia:</span> {farmaco.posologia}
-          </p>
-        )}
+
         {malattiaNome && (
           <p className='text-xs text-muted-foreground'>
             <span className='font-medium'>Per:</span> {malattiaNome}
           </p>
         )}
         {!isInPiano && (
-          <div className='space-y-1.5 pt-1'>
-            <Label
-              htmlFor={`commenti-${farmaco.id}`}
-              className='text-xs font-medium'
-            >
-              Commenti aggiuntivi (opzionale)
-            </Label>
-            <Input
-              id={`commenti-${farmaco.id}`}
-              type='text'
-              placeholder='Aggiungi note o commenti sul farmaco...'
-              value={commenti}
-              onChange={(e) => setCommenti(e.target.value)}
-              className='text-xs h-8'
-            />
-          </div>
+          <>
+            <div className='space-y-1.5 pt-1'>
+              <Label
+                htmlFor={`posologia-${farmaco.id}`}
+                className='text-xs font-medium'
+              >
+                Posologia:
+              </Label>
+              <Input
+                id={`posologia-${farmaco.id}`}
+                type='text'
+                placeholder={farmaco.posologia || 'Inserisci posologia...'}
+                value={posologiaModificata}
+                onChange={(e) => setPosologiaModificata(e.target.value)}
+                className='text-xs h-8'
+              />
+            </div>
+            <div className='space-y-1.5 pt-1'>
+              <Label
+                htmlFor={`commenti-${farmaco.id}`}
+                className='text-xs font-medium'
+              >
+                Commenti aggiuntivi (opzionale):
+              </Label>
+              <Input
+                id={`commenti-${farmaco.id}`}
+                type='text'
+                placeholder='Aggiungi note o commenti sul farmaco...'
+                value={commenti}
+                onChange={(e) => setCommenti(e.target.value)}
+                className='text-xs h-8'
+              />
+            </div>
+          </>
         )}
         <div className='pt-2'>
           <Button
